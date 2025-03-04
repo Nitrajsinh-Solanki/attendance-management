@@ -78,7 +78,9 @@ export default function Dashboard() {
     if (sectionId === 'students') {
       router.push('/dashboard/students');
     }
-     
+    else if (sectionId === 'faculty') {
+      router.push('/dashboard/faculty');
+    }
     
     
   };
