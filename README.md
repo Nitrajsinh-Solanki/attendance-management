@@ -34,9 +34,4 @@ npm run dev
 By default, the application runs at **http://localhost:3000**.
 
 
----
 
-🚀 Happy coding!
-```
-
-This **README.md** provides a clean, **structured**, and **professional** documentation format with all essential details, including **npm run dev** for running the application. Let me know if you need any modifications! 🚀
