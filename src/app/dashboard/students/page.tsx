@@ -1,6 +1,12 @@
+// attendance-management\src\app\dashboard\students\page.tsx
+
+
+
+
 'use client';
 
-import { FaGraduationCap, FaUsers, FaArrowRight } from 'react-icons/fa';
+import { useState } from 'react';
+import { FaGraduationCap, FaUsers, FaArrowRight, FaUpload } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 
 interface Semester {
@@ -26,7 +32,7 @@ const SemesterCard = ({ semester, onManage }: { semester: Semester, onManage: (i
       </div>
       <div className="h-1 w-20 bg-white opacity-50 rounded"></div>
     </div>
-    
+
     <div className="p-8 flex-grow flex flex-col justify-between">
       <div>
         <p className="text-gray-600 text-lg mb-6 leading-relaxed">
@@ -39,10 +45,10 @@ const SemesterCard = ({ semester, onManage }: { semester: Semester, onManage: (i
           </span>
         </div>
       </div>
-      
+
       <button
         onClick={() => onManage(semester.id)}
-        className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 
+        className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700
                  transition duration-200 flex items-center justify-center font-semibold text-lg
                  group cursor-pointer"
       >
@@ -55,6 +61,38 @@ const SemesterCard = ({ semester, onManage }: { semester: Semester, onManage: (i
 
 export default function StudentManagement() {
   const router = useRouter();
+  const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadStatus('Uploading...');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/students/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUploadStatus(`Successfully uploaded ${data.count} students`);
+      } else {
+        setUploadStatus(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      setUploadStatus('Failed to upload file');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleManageSemester = (semesterId: number) => {
     router.push(`/dashboard/students/semester/${semesterId}`);
@@ -63,15 +101,39 @@ export default function StudentManagement() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-12">
       <div className="max-w-[1400px] mx-auto">
-        <div className="mb-16 text-center">
-          <h1 className="text-5xl font-bold text-gray-800 mb-6">
-            Student Management Dashboard
-          </h1>
-          <p className="text-gray-600 text-xl max-w-2xl mx-auto">
-            Select a semester to manage its students and access detailed information
-          </p>
+        <div className="mb-16">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-5xl font-bold text-gray-800">
+              Student Management Dashboard
+            </h1>
+            <div className="relative">
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+                disabled={uploading}
+              />
+              <label
+                htmlFor="file-upload"
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700
+                         transition duration-200 flex items-center cursor-pointer"
+              >
+                <FaUpload className="mr-2" />
+                Upload Students
+              </label>
+            </div>
+          </div>
+          {uploadStatus && (
+            <div className={`text-center p-4 rounded-lg mb-6 ${
+              uploadStatus.includes('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+            }`}>
+              {uploadStatus}
+            </div>
+          )}
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {semesters.map((semester) => (
             <SemesterCard
